@@ -43,8 +43,8 @@ TOP_INDICATORS = [
 
 # 하단: 국내 섹터 ETF 16종 (키움 HTS 스크린샷과 동일한 순서)
 SECTOR_ETFS = [
-    {"code": "KS11",   "name": "종합(KOSPI)",       "source": "fdr"},
-    {"code": "KQ11",   "name": "종합(KOSDAQ)",      "source": "fdr"},
+    {"code": "^KS11",  "name": "종합(KOSPI)",       "source": "yf"},
+    {"code": "^KQ11",  "name": "종합(KOSDAQ)",      "source": "yf"},
     {"code": "091160", "name": "KODEX 반도체",       "source": "fdr"},
     {"code": "305720", "name": "KODEX 2차전지산업",   "source": "fdr"},
     {"code": "102970", "name": "KODEX 증권",         "source": "fdr"},
