@@ -39,6 +39,7 @@ TOP_INDICATORS = [
     {"code": "CL=F",   "name": "WTI 선물",             "source": "yf"},
     {"code": "USD/KRW","name": "원달러 환율",           "source": "fdr"},
     {"code": "^TNX",   "name": "미국채 10년물",         "source": "yf"},
+    {"code": "DGS2",   "name": "미국채 2년물",          "source": "fred"},
 ]
 
 # 하단: 국내 섹터 ETF 16종 (키움 HTS 스크린샷과 동일한 순서)
@@ -77,6 +78,11 @@ def fetch_data(code: str, source: str, days_back: int):
         df = yf.Ticker(code).history(start=start)
         # 타임존 정보 제거 (plotly 표시 편의를 위해)
         df.index = df.index.tz_localize(None)
+    elif source == "fred":
+        # FRED는 OHLC가 없는 단일 값(수익률 등) 시계열이라 "Close"로 통일
+        df = fdr.DataReader(f"FRED:{code}", start)
+        if "Close" not in df.columns:
+            df = df.rename(columns={df.columns[0]: "Close"})
     else:
         df = fdr.DataReader(code, start)
     return df
@@ -103,20 +109,33 @@ def render_card(code: str, name: str, source: str):
         unsafe_allow_html=True,
     )
 
-    # 캔들 차트
-    fig = go.Figure(
-        data=[
-            go.Candlestick(
-                x=df.index,
-                open=df["Open"],
-                high=df["High"],
-                low=df["Low"],
-                close=df["Close"],
-                increasing_line_color="red",
-                decreasing_line_color="blue",
-            )
-        ]
-    )
+    # 캔들 차트 (OHLC가 없는 시계열, 예: FRED 금리 데이터는 라인 차트로 대체)
+    has_ohlc = {"Open", "High", "Low"}.issubset(df.columns)
+    if has_ohlc:
+        fig = go.Figure(
+            data=[
+                go.Candlestick(
+                    x=df.index,
+                    open=df["Open"],
+                    high=df["High"],
+                    low=df["Low"],
+                    close=df["Close"],
+                    increasing_line_color="red",
+                    decreasing_line_color="blue",
+                )
+            ]
+        )
+    else:
+        fig = go.Figure(
+            data=[
+                go.Scatter(
+                    x=df.index,
+                    y=df["Close"],
+                    mode="lines",
+                    line=dict(color="orange", width=2),
+                )
+            ]
+        )
     fig.update_layout(
         height=280,
         margin=dict(l=10, r=10, t=10, b=10),
@@ -146,6 +165,7 @@ st.subheader("🇰🇷 국내 섹터 ETF")
 render_grid(SECTOR_ETFS, cols_per_row=4)
 
 st.caption(
-    "데이터 출처: FinanceDataReader, Yahoo Finance(yfinance) · 5분 간격으로 자동 캐시 갱신 · "
-    "코스피200 야간선물 / 코스피 VIX(V-KOSPI200)는 무료 API 미제공으로 제외"
+    "데이터 출처: FinanceDataReader, Yahoo Finance(yfinance), FRED · 5분 간격으로 자동 캐시 갱신 · "
+    "코스피200 야간선물 / 코스피 VIX(V-KOSPI200)는 무료 API 미제공으로 제외 · "
+    "미국채 2년물은 FRED(DGS2) 기준으로 캔들이 아닌 라인 차트로 표시"
 )
