@@ -43,8 +43,8 @@ TOP_INDICATORS = [
 
 # 하단: 국내 섹터 ETF 16종 (키움 HTS 스크린샷과 동일한 순서)
 SECTOR_ETFS = [
-    {"code": "^KS11",  "name": "종합(KOSPI)",       "source": "yf"},
-    {"code": "^KQ11",  "name": "종합(KOSDAQ)",      "source": "yf"},
+    {"code": "KS11",   "name": "종합(KOSPI)",       "source": "fdr"},
+    {"code": "KQ11",   "name": "종합(KOSDAQ)",      "source": "fdr"},
     {"code": "091160", "name": "KODEX 반도체",       "source": "fdr"},
     {"code": "305720", "name": "KODEX 2차전지산업",   "source": "fdr"},
     {"code": "102970", "name": "KODEX 증권",         "source": "fdr"},
@@ -93,7 +93,7 @@ def render_card(code: str, name: str, source: str):
     prev = df.iloc[-2]
     change = last["Close"] - prev["Close"]
     pct = change / prev["Close"] * 100
-    color = "red" if change >= 0 else "blue"  # 국내 관행: 상승=빨강, 하락=파랑
+    color = "red" if change >= 0 else "white"  # 상승=빨강, 하락=하양(가독성 개선)
 
     # 헤더: 종목명 + 현재가 + 등락률
     st.markdown(
